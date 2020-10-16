@@ -136,21 +136,25 @@ class Levels extends Phaser.Scene {
       frameHeight: 22,
       frameWidth: 22
     });
+    this.load.spritesheet('decoration', 'images/decor.png', {
+      frameHeight: 42,
+      frameWidth: 42
+    });
     this.load.spritesheet('door', 'images/door.png', {
-      frameWidth: 42,
-      frameHeight: 66
+      frameHeight: 66,
+      frameWidth: 42
     });
     this.load.spritesheet('hero', 'images/hero.png', {
-      frameWidth: 36,
-      frameHeight: 42
+      frameHeight: 42,
+      frameWidth: 36
     });
     this.load.spritesheet('icon:key', 'images/key_icon.png', {
-      frameWidth: 34,
-      frameHeight: 30
+      frameHeight: 30,
+      frameWidth: 34
     });
     this.load.spritesheet('spider', 'images/spider.png', {
-      frameWidth: 42,
-      frameHeight: 32
+      frameHeight: 32,
+      frameWidth: 42
     });
   }
 
@@ -295,13 +299,16 @@ class Levels extends Phaser.Scene {
     }
   };
 
-  _loadLevel = ({ coins, door, hero, key, platforms, spiders }) => {
+  _loadLevel = ({ coins, decoration, door, hero, key, platforms, spiders }) => {
     // create all the groups/layers that we need
-    this.bgDecoration = this.add.group();
+    this.decorations = this.add.group();
     this.coins = this.add.group();
     this.enemyWalls = this.add.group();
     this.platforms = this.add.group();
     this.spiders = this.add.group();
+
+    // spawn decorations
+    decoration.forEach(this._spawnDecoration);
 
     // spawn all platforms
     platforms.forEach(this._spawnPlatform);
@@ -346,8 +353,16 @@ class Levels extends Phaser.Scene {
     this.coins.add(coin);
   };
 
+  _spawnDecoration = ({ frame, x, y }) => {
+    const decoration = this.add.image(x, y, 'decoration', frame);
+
+    decoration.setOrigin(0);
+
+    this.decorations.add(decoration);
+  };
+
   _spawnDoor = (x, y) => {
-    this.door = this.bgDecoration.create(x, y, 'door');
+    this.door = this.decorations.create(x, y, 'door');
     this.door.setOrigin(0.5, 1);
     this.physics.world.enable(this.door);
     this.door.body.allowGravity = false;
@@ -368,7 +383,7 @@ class Levels extends Phaser.Scene {
   };
 
   _spawnKey = (x, y) => {
-    this.key = this.bgDecoration.create(x, y, 'key');
+    this.key = this.decorations.create(x, y, 'key');
 
     //this.key.y -= 3;
     this.tweens.add({
