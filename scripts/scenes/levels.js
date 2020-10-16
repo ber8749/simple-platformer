@@ -75,6 +75,15 @@ class Levels extends Phaser.Scene {
       stomp: this.sound.add('sfx:stomp')
     };
 
+    this.song = this.song || {
+      bgm: this.sound.add('song:bgm')
+    };
+
+    // play song
+    if (!this.song.bgm.isPlaying) {
+      this.song.bgm.play({ loop: true });
+    }
+
     // load level
     this._loadLevel(this.cache.json.get(`level:${ this.level }`));
 
@@ -130,6 +139,7 @@ class Levels extends Phaser.Scene {
     this.load.audio('sfx:key', 'audio/key.wav');
     this.load.audio('sfx:jump', 'audio/jump.wav');
     this.load.audio('sfx:stomp', 'audio/stomp.wav');
+    this.load.audio('song:bgm', ['audio/bgm.mp3', 'audio/bgm.ogg']);
 
     // load spritesheets
     this.load.spritesheet('coin', 'images/coin_animated.png', {
