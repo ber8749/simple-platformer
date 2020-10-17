@@ -55,9 +55,9 @@ class Hero extends Phaser.GameObjects.Sprite {
     this.body.velocity.x = direction * 200;
 
     if (this.body.velocity.x < 0) {
-      this.scaleX = -1;
+      this.setFlipX(true);
     } else if (this.body.velocity.x > 0) {
-      this.scaleX = 1;
+      this.setFlipX(false);
     }
   };
 
