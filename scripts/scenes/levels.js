@@ -94,6 +94,9 @@ class Levels extends Phaser.Scene {
 
     // add HUD
     this._createHud();
+
+    // fade in
+    this.cameras.main.fadeIn(500);
   }
 
   init(data) {
@@ -200,20 +203,21 @@ class Levels extends Phaser.Scene {
       this.coinPickupCount++;
     },
     heroDoor: (hero, door) => {
-      // 'open' the door by changing its graphic and playing a sfx
+      // "open" door frame
       door.setFrame(1);
 
       this.sfx.door.play();
 
-      // play 'enter door' animation and change to the next level when it ends
       hero.freeze();
-      const heroDoorTween = this.tweens.add({
+
+      // play 'enter door' animation and change to the next level when it ends
+      this.tweens.add({
         alpha: 0,
         duration: 500,
+        onComplete: () => this._changeLevel(this.level + 1),
         targets: hero,
         x: door.x
       });
-      heroDoorTween.on('complete', () => this.scene.restart({ level: this.level + 1 }));
     },
     heroEnemy: (hero, enemy) => {
       this.sfx.stomp.play();
@@ -225,7 +229,7 @@ class Levels extends Phaser.Scene {
       } else {
         hero.die();
         // game over -> restart the game
-        hero.on(Phaser.Core.Events.DESTROY, () => this.scene.restart());
+        hero.on(Phaser.Core.Events.DESTROY, () => this._changeLevel(this.level));
       }
     },
     heroKey: (_hero, key) => {
@@ -237,6 +241,12 @@ class Levels extends Phaser.Scene {
     heroPlatform: () => {
       this.physics.collide(this.hero, this.platforms);
     }
+  };
+
+  _changeLevel = level => {
+    // fade out and restart
+    this.cameras.main.fadeOut(500);
+    this.cameras.main.on('camerafadeoutcomplete', () => this.scene.restart({ level }));
   };
 
   _createHud = () => {
