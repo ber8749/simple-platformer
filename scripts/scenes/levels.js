@@ -38,22 +38,27 @@ class Levels extends Phaser.Scene {
 
     // add hero animations
     this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [0] }),
-      key: 'stop'
+      frameRate: 12,
+      frames: this.anims.generateFrameNumbers('hero', { frames: [5, 6, 5, 6, 5, 6, 5, 6] }),
+      key: 'hero:die'
     });
     this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [1, 2] }),
-      frameRate: 8,
-      key: 'run',
-      repeat: -1
+      frames: this.anims.generateFrameNumbers('hero', { frames: [4] }),
+      key: 'fall'
     });
     this.anims.create({
       frames: this.anims.generateFrameNumbers('hero', { frames: [3] }),
       key: 'jump'
     });
     this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [4] }),
-      key: 'fall'
+      frameRate: 8,
+      frames: this.anims.generateFrameNumbers('hero', { frames: [1, 2] }),
+      key: 'run',
+      repeat: -1
+    });
+    this.anims.create({
+      frames: this.anims.generateFrameNumbers('hero', { frames: [0] }),
+      key: 'stop'
     });
 
     // create fonts
@@ -206,8 +211,9 @@ class Levels extends Phaser.Scene {
         hero.bounce();
         enemy.die();
       } else {
+        hero.die();
         // game over -> restart the game
-        this.scene.restart();
+        hero.on(Phaser.Core.Events.DESTROY, () => this.scene.restart());
       }
     },
     heroKey: (_hero, key) => {

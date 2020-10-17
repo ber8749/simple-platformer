@@ -15,6 +15,8 @@ class Hero extends Phaser.GameObjects.Sprite {
     // workaround for update bug: https://github.com/photonstorm/phaser/issues/3378
     this.scene.events.on('postupdate', this.update);
 
+    this.alive = true;
+
     console.log('Hero:', this);
   }
 
@@ -23,6 +25,15 @@ class Hero extends Phaser.GameObjects.Sprite {
 
     this.body.velocity.y = -BOUNCE_SPEED;
   };
+
+  die = () => {
+    this.alive = false;
+    this.body.enable = false;
+
+    this.anims.play('hero:die');
+
+    this.on('animationcomplete-hero:die', () => this.destroy());
+  }
 
   jump = () => {
     const JUMP_SPEED = 600;
@@ -36,6 +47,8 @@ class Hero extends Phaser.GameObjects.Sprite {
   };
 
   move = direction => {
+    if (!this.body) return;
+    
     const SPEED = 200;
 
     this.body.velocity.x = direction * SPEED;
@@ -64,7 +77,9 @@ class Hero extends Phaser.GameObjects.Sprite {
     // default animation
     let name = 'stop';
 
-    if (this.body.velocity.y < 0) {
+    if (!this.alive) {
+      name = 'hero:die';
+    } else if (this.body.velocity.y < 0) {
       name = 'jump';
     } else if (this.body.velocity.y >= 0 && !this.body.touching.down) {
       name = 'fall';
