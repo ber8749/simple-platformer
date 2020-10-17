@@ -62,9 +62,8 @@ class Levels extends Phaser.Scene {
     });
 
     // create fonts
-    const NUMBERS = '0123456789X ';
     this.coinFont = this.cache.bitmapFont.add('font:coins', Phaser.GameObjects.RetroFont.Parse(this, {
-      chars: NUMBERS,
+      chars: '0123456789X ',
       charsPerRow: 6,
       height: 26,
       image: 'font:numbers',
@@ -112,14 +111,6 @@ class Levels extends Phaser.Scene {
       left: Phaser.Input.Keyboard.KeyCodes.LEFT,
       right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
       up: Phaser.Input.Keyboard.KeyCodes.UP
-    });
-
-    this.keys.up.on('down', () => {
-      const didJump = this.hero.jump();
-
-      if (didJump) {
-        this.sfx.jump.play();
-      }
     });
   }
 
@@ -334,6 +325,16 @@ class Levels extends Phaser.Scene {
     } else {
       // stop
       this.hero.move(0);
+    }
+
+    if (this.keys.up.isDown && this.keys.up.getDuration() < 200) {
+      const didJump = this.hero.jump();
+
+      if (didJump) {
+        this.sfx.jump.play();
+      }
+    } else {
+      this.hero.stopJump();
     }
   };
 

@@ -21,9 +21,7 @@ class Hero extends Phaser.GameObjects.Sprite {
   }
 
   bounce = () => {
-    const BOUNCE_SPEED = 200;
-
-    this.body.velocity.y = -BOUNCE_SPEED;
+    this.body.velocity.y = -200;
   };
 
   die = () => {
@@ -41,11 +39,11 @@ class Hero extends Phaser.GameObjects.Sprite {
   }
 
   jump = () => {
-    const JUMP_SPEED = 600;
-    const canJump = this.body.touching.down;
+    const canJump = this.body.touching.down && this.isAlive && !this.isFrozen;;
 
-    if (canJump) {
-      this.body.velocity.y = -JUMP_SPEED;
+    if (canJump || this.isJumping) {
+      this.body.velocity.y = -400;
+      this.isJumping = true;
     }
 
     return canJump;
@@ -54,15 +52,17 @@ class Hero extends Phaser.GameObjects.Sprite {
   move = direction => {
     if (!this.body || this.isFrozen) return;
 
-    const SPEED = 200;
-
-    this.body.velocity.x = direction * SPEED;
+    this.body.velocity.x = direction * 200;
 
     if (this.body.velocity.x < 0) {
       this.scaleX = -1;
     } else if (this.body.velocity.x > 0) {
       this.scaleX = 1;
     }
+  };
+
+  stopJump = () => {
+    this.isJumping = false;
   };
 
   update = () => {
