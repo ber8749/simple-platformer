@@ -199,9 +199,21 @@ class Levels extends Phaser.Scene {
 
       this.coinPickupCount++;
     },
-    heroDoor: () => {
+    heroDoor: (hero, door) => {
+      // 'open' the door by changing its graphic and playing a sfx
+      door.setFrame(1);
+
       this.sfx.door.play();
-      this.scene.restart({ level: this.level + 1 });
+
+      // play 'enter door' animation and change to the next level when it ends
+      hero.freeze();
+      const heroDoorTween = this.tweens.add({
+        alpha: 0,
+        duration: 500,
+        targets: hero,
+        x: door.x
+      });
+      heroDoorTween.on('complete', () => this.scene.restart({ level: this.level + 1 }));
     },
     heroEnemy: (hero, enemy) => {
       this.sfx.stomp.play();
