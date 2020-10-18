@@ -1,5 +1,5 @@
 import Load from './scenes/load.js';
-import Levels from './scenes/levels.js';
+import Play from './scenes/play.js';
 
 // load game
 const config = {
@@ -15,7 +15,7 @@ const config = {
       gravity: { y: 1200 }
     }
   },
-  scene: [Load, Levels],
+  scene: [Load, Play],
   type: Phaser.AUTO,
   width: 960
 };

@@ -73,7 +73,7 @@ class Load extends Phaser.Scene {
     this.sound.play('song:bgm', { loop: true })
 
     // start game
-    this.scene.start('Levels', { level: 0 });
+    this.scene.start('Play', { level: 0 });
   }
 
   preload() {

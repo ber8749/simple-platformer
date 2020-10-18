@@ -1,13 +1,13 @@
 import Hero from '../sprites/hero.js';
 import Spider from '../sprites/spider.js';
 
-class Levels extends Phaser.Scene {
+class Play extends Phaser.Scene {
   static LEVEL_COUNT = 2;
 
   constructor() {
-    super('Levels');
+    super('Play');
 
-    console.log('Levels', this);
+    console.log('Play', this);
   }
 
   create() {
@@ -295,8 +295,8 @@ class Levels extends Phaser.Scene {
 
   _spawnKey = (x, y) => {
     this.key = this.decorations.create(x, y, 'key');
+    this.key.setOrigin(0.5);
 
-    //this.key.y -= 3;
     this.tweens.add({
       targets: this.key,
       ease: 'Sine.easeInOut',
@@ -305,8 +305,6 @@ class Levels extends Phaser.Scene {
       y: this.key.y + 6,
       yoyo: true
     });
-
-    this.key.setOrigin(0.5);
 
     this.physics.world.enable(this.key);
     this.key.body.allowGravity = false;
@@ -333,4 +331,4 @@ class Levels extends Phaser.Scene {
   };
 }
 
-export default Levels;
+export default Play;
