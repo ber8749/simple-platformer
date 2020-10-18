@@ -16,7 +16,7 @@ class Spider extends Phaser.GameObjects.Sprite {
     this.body.velocity.x = Spider.SPEED;
 
     // start animations
-    this.anims.play('crawl');
+    this.anims.play('spider:crawl');
 
     // workaround for update bug: https://github.com/photonstorm/phaser/issues/3378
     this.scene.events.on('postupdate', this.update);
@@ -27,9 +27,9 @@ class Spider extends Phaser.GameObjects.Sprite {
   die = () => {
     this.body.enable = false;
 
-    this.anims.play('die');
+    this.anims.play('spider:die');
 
-    this.on('animationcomplete-die', () => this.destroy());
+    this.on('animationcomplete-spider:die', () => this.destroy());
   };
 
   update = () => {

@@ -11,82 +11,8 @@ class Levels extends Phaser.Scene {
   }
 
   create() {
-    // add and configure background
-    const background = this.add.image(0, 0, 'background')
-    background.setOrigin(0, 0);
-
-    // coin animations
-    this.anims.create({
-      frames: this.anims.generateFrameNumbers('coin'),
-      frameRate: 6,
-      key: 'rotate',
-      repeat: -1
-    });
-
-    // spider animations
-    this.anims.create({
-      frames: this.anims.generateFrameNumbers('spider', { frames: [0, 1, 2] }),
-      frameRate: 8,
-      key: 'crawl',
-      repeat: -1
-    });
-    this.anims.create({
-      key: 'die',
-      frames: this.anims.generateFrameNumbers('spider', { frames: [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3] }),
-      frameRate: 12
-    });
-
-    // add hero animations
-    this.anims.create({
-      frameRate: 12,
-      frames: this.anims.generateFrameNumbers('hero', { frames: [5, 6, 5, 6, 5, 6, 5, 6] }),
-      key: 'hero:die'
-    });
-    this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [4] }),
-      key: 'fall'
-    });
-    this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [3] }),
-      key: 'jump'
-    });
-    this.anims.create({
-      frameRate: 8,
-      frames: this.anims.generateFrameNumbers('hero', { frames: [1, 2] }),
-      key: 'run',
-      repeat: -1
-    });
-    this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [0] }),
-      key: 'stop'
-    });
-
-    // create fonts
-    this.coinFont = this.cache.bitmapFont.add('font:coins', Phaser.GameObjects.RetroFont.Parse(this, {
-      chars: '0123456789X ',
-      charsPerRow: 6,
-      height: 26,
-      image: 'font:numbers',
-      width: 20
-    }));
-
-    // create sound entities
-    this.sfx = {
-      coin: this.sound.add('sfx:coin'),
-      door: this.sound.add('sfx:door'),
-      key: this.sound.add('sfx:key'),
-      jump: this.sound.add('sfx:jump'),
-      stomp: this.sound.add('sfx:stomp')
-    };
-
-    this.song = this.song || {
-      bgm: this.sound.add('song:bgm')
-    };
-
-    // play song
-    if (!this.song.bgm.isPlaying) {
-      this.song.bgm.play({ loop: true });
-    }
+    // add background
+    this.add.image(0, 0, 'background').setOrigin(0, 0);
 
     // load level
     this._loadLevel(this.cache.json.get(`level:${ this.level }`));
@@ -99,12 +25,9 @@ class Levels extends Phaser.Scene {
   }
 
   init(data) {
-    this.coinPickupCount = 0;
+    this.coinCount = 0;
     this.hasKey = false;
     this.level = (data.level || 0) % this.constructor.LEVEL_COUNT;
-
-    // configure cameras
-    this.cameras.roundPixels = true;
 
     // configure input
     this.keys = this.input.keyboard.addKeys({
@@ -114,65 +37,12 @@ class Levels extends Phaser.Scene {
     });
   }
 
-  preload() {
-    // load data
-    this.load.json('level:0', 'data/level00.json');
-    this.load.json('level:1', 'data/level01.json');
-
-    // load images
-    this.load.image('background', 'images/background.png');
-    this.load.image('font:numbers', 'images/numbers.png');
-    this.load.image('grass:8x1', 'images/grass_8x1.png');
-    this.load.image('grass:6x1', 'images/grass_6x1.png');
-    this.load.image('grass:4x1', 'images/grass_4x1.png');
-    this.load.image('grass:2x1', 'images/grass_2x1.png');
-    this.load.image('grass:1x1', 'images/grass_1x1.png');
-    this.load.image('ground', 'images/ground.png');
-    this.load.image('icon:coin', 'images/coin_icon.png');
-    this.load.image('invisible-wall', 'images/invisible_wall.png');
-    this.load.image('key', 'images/key.png');
-
-    // load sounds
-    this.load.audio('sfx:coin', 'audio/coin.wav');
-    this.load.audio('sfx:door', 'audio/door.wav');
-    this.load.audio('sfx:key', 'audio/key.wav');
-    this.load.audio('sfx:jump', 'audio/jump.wav');
-    this.load.audio('sfx:stomp', 'audio/stomp.wav');
-    this.load.audio('song:bgm', ['audio/bgm.mp3', 'audio/bgm.ogg']);
-
-    // load spritesheets
-    this.load.spritesheet('coin', 'images/coin_animated.png', {
-      frameHeight: 22,
-      frameWidth: 22
-    });
-    this.load.spritesheet('decoration', 'images/decor.png', {
-      frameHeight: 42,
-      frameWidth: 42
-    });
-    this.load.spritesheet('door', 'images/door.png', {
-      frameHeight: 66,
-      frameWidth: 42
-    });
-    this.load.spritesheet('hero', 'images/hero.png', {
-      frameHeight: 42,
-      frameWidth: 36
-    });
-    this.load.spritesheet('icon:key', 'images/key_icon.png', {
-      frameHeight: 30,
-      frameWidth: 34
-    });
-    this.load.spritesheet('spider', 'images/spider.png', {
-      frameHeight: 32,
-      frameWidth: 42
-    });
-  }
-
   update() {
     this._handleCollisions();
     this._handleInput();
 
     // update coin count
-    this.coinScore.text = `X${ this.coinPickupCount }`;
+    this.coinScore.text = `X${ this.coinCount }`;
 
     // update key status
     this.keyIcon.setFrame(this.hasKey ? 1 : 0);
@@ -188,16 +58,17 @@ class Levels extends Phaser.Scene {
       this.physics.collide(enemies, this.enemyWalls);
     },
     heroCoin: (_hero, coin) => {
-      this.sfx.coin.play();
+      this.sound.play('sfx:coin');
+
       coin.destroy();
 
-      this.coinPickupCount++;
+      this.coinCount++;
     },
     heroDoor: (hero, door) => {
       // "open" door frame
       door.setFrame(1);
 
-      this.sfx.door.play();
+      this.sound.play('sfx:door');
 
       hero.freeze();
 
@@ -211,7 +82,7 @@ class Levels extends Phaser.Scene {
       });
     },
     heroEnemy: (hero, enemy) => {
-      this.sfx.stomp.play();
+      this.sound.play('sfx:stomp');
 
       if (hero.body.velocity.y > 0) {
         // kill enemies when hero is falling
@@ -224,7 +95,8 @@ class Levels extends Phaser.Scene {
       }
     },
     heroKey: (_hero, key) => {
-      this.sfx.key.play();
+      this.sound.play('sfx:key');
+
       key.destroy();
 
       this.hasKey = true;
@@ -256,7 +128,7 @@ class Levels extends Phaser.Scene {
     coinIcon.setOrigin(0);
 
     this.coinScore = this.make.bitmapText({
-      font: 'font:coins',
+      font: 'font:numbers',
       text: 'X0',
       x: coinIcon.x + coinIcon.width,
       y: coinIcon.height / 2
@@ -331,7 +203,7 @@ class Levels extends Phaser.Scene {
       const didJump = this.hero.jump();
 
       if (didJump) {
-        this.sfx.jump.play();
+        this.sound.play('sfx:jump');
       }
     } else {
       this.hero.stopJump();
@@ -383,7 +255,7 @@ class Levels extends Phaser.Scene {
     coin.setOrigin(0.5);
 
     // animate
-    coin.anims.play('rotate');
+    coin.anims.play('coin:rotate');
 
     // add and configure physics
     this.physics.add.existing(coin);
@@ -427,9 +299,9 @@ class Levels extends Phaser.Scene {
     //this.key.y -= 3;
     this.tweens.add({
       targets: this.key,
-      ease: 'Sine.easeInOut', // 'Cubic', 'Elastic', 'Bounce', 'Back'
+      ease: 'Sine.easeInOut',
       duration: 800,
-      repeat: -1,            // -1: infinity
+      repeat: -1,
       y: this.key.y + 6,
       yoyo: true
     });

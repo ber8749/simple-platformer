@@ -39,6 +39,8 @@ class Hero extends Phaser.GameObjects.Sprite {
   }
 
   jump = () => {
+    if (!this.body) return;
+    
     const canJump = this.body.touching.down && this.isAlive && !this.isFrozen;;
 
     if (canJump || this.isJumping) {
@@ -83,7 +85,7 @@ class Hero extends Phaser.GameObjects.Sprite {
     let name = 'stop';
 
     if (!this.isAlive) {
-      name = 'hero:die';
+      name = 'die';
     } else if (this.isFrozen) {
       name = 'stop';
     } else if (this.body.velocity.y < 0) {
@@ -94,7 +96,7 @@ class Hero extends Phaser.GameObjects.Sprite {
       name = 'run';
     }
 
-    return name;
+    return `hero:${ name }`;
   };
 }
 
