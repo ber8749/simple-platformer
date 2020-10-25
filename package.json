@@ -1,0 +1,44 @@
+{
+  "name": "platformer",
+  "version": "1.0.0",
+  "description": "A simple platformer game based on [Mozilla's HTML5 Games Workshop Platformer](https://mozdevs.github.io/html5-games-workshop/en/guides/platformer/start-here/) using [Phaser 3](https://phaser.io/phaser3).",
+  "private": true,
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --config webpack/production.js",
+    "start": "cross-env NODE_ENV=development webpack serve --config webpack/development.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ber8749/platformer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ber8749/platformer/issues"
+  },
+  "homepage": "https://github.com/ber8749/platformer#readme",
+  "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "babel-loader": "^8.1.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "cross-env": "^7.0.2",
+    "css-loader": "^5.0.0",
+    "file-loader": "^6.1.1",
+    "html-webpack-plugin": "^4.5.0",
+    "node-sass": "^4.14.1",
+    "sass-loader": "^10.0.4",
+    "style-loader": "^2.0.0",
+    "terser-webpack-plugin": "^5.0.1",
+    "webpack": "^5.2.0",
+    "webpack-cli": "^4.1.0",
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^5.2.0"
+  },
+  "dependencies": {
+    "phaser": "^3.24.1"
+  }
+}

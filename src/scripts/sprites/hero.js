@@ -1,3 +1,6 @@
+// dependencies
+import Phaser from 'phaser';
+
 class Hero extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, texture, frame) {
     super(scene, x, y, texture, frame);
@@ -40,7 +43,7 @@ class Hero extends Phaser.GameObjects.Sprite {
 
   jump = () => {
     if (!this.body) return;
-    
+
     const canJump = this.body.touching.down && this.isAlive && !this.isFrozen;;
 
     if (canJump || this.isJumping) {

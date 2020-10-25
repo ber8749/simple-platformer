@@ -1,3 +1,6 @@
+// dependencies
+import Phaser from 'phaser';
+
 import Hero from '../sprites/hero.js';
 import Spider from '../sprites/spider.js';
 

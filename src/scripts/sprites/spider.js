@@ -1,3 +1,6 @@
+// dependencies
+import Phaser from 'phaser';
+
 class Spider extends Phaser.GameObjects.Sprite {
   static SPEED = 100;
 
