@@ -1,10 +1,11 @@
-const paths = require('./paths')
-const { merge } = require('webpack-merge')
-const common = require('./common.js')
-
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
-const TerserPlugin = require('terser-webpack-plugin')
+// plugins
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+// utilities
+const common = require('./common.js');
+const paths = require('./paths');
+const { merge } = require('webpack-merge');
 
 module.exports = merge(common, {
   mode: 'production',
@@ -55,4 +56,4 @@ module.exports = merge(common, {
     maxEntrypointSize: 900000,
     maxAssetSize: 900000
   },
-})
+});

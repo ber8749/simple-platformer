@@ -1,8 +1,8 @@
+// utilities
 const common = require('./common.js');
 const paths = require('./paths');
 const webpack = require('webpack');
 const { merge } = require('webpack-merge');
-
 
 module.exports = merge(common, {
   // Set the mode to development or production
@@ -18,11 +18,11 @@ module.exports = merge(common, {
     open: true,
     compress: true,
     hot: true,
-    port: 8080,
+    port: 8080
   },
 
   plugins: [
     // Only update what has changed on hot reload
-    new webpack.HotModuleReplacementPlugin(),
+    new webpack.HotModuleReplacementPlugin()
   ]
 });
