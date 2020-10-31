@@ -1,26 +1,23 @@
 // dependencies
 import Phaser from 'phaser';
 
-class Hero extends Phaser.GameObjects.Sprite {
+class Player extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, texture, frame) {
     super(scene, x, y, texture, frame);
+    // define player properties
+    this.isAlive = true;
+    this.setOrigin(0.5);
 
     // add to scene
     this.scene.add.existing(this);
-
-    // set initial position
-    this.setOrigin(0.5);
 
     // add physics
     this.scene.physics.add.existing(this);
     this.body.collideWorldBounds = true;
 
-    // workaround for update bug: https://github.com/photonstorm/phaser/issues/3378
+    // circumvent update bug:
+    // https://github.com/photonstorm/phaser/issues/3378
     this.scene.events.on('postupdate', this.update);
-
-    this.isAlive = true;
-
-    console.log('Hero:', this);
   }
 
   bounce = () => {
@@ -31,9 +28,9 @@ class Hero extends Phaser.GameObjects.Sprite {
     this.isAlive = false;
     this.body.enable = false;
 
-    this.anims.play('hero:die');
+    this.anims.play('player:die');
 
-    this.on('animationcomplete-hero:die', () => this.destroy());
+    this.on('animationcomplete-player:die', () => this.destroy());
   }
 
   freeze = () => {
@@ -99,8 +96,8 @@ class Hero extends Phaser.GameObjects.Sprite {
       name = 'run';
     }
 
-    return `hero:${ name }`;
+    return `player:${ name }`;
   };
 }
 
-export default Hero;
+export default Player;

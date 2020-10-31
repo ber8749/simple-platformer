@@ -30,29 +30,29 @@ class Load extends Phaser.Scene {
       frameRate: 12
     });
 
-    // hero animations
+    // player animations
     this.anims.create({
       frameRate: 12,
-      frames: this.anims.generateFrameNumbers('hero', { frames: [5, 6, 5, 6, 5, 6, 5, 6] }),
-      key: 'hero:die'
+      frames: this.anims.generateFrameNumbers('player', { frames: [5, 6, 5, 6, 5, 6, 5, 6] }),
+      key: 'player:die'
     });
     this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [4] }),
-      key: 'hero:fall'
+      frames: this.anims.generateFrameNumbers('player', { frames: [4] }),
+      key: 'player:fall'
     });
     this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [3] }),
-      key: 'hero:jump'
+      frames: this.anims.generateFrameNumbers('player', { frames: [3] }),
+      key: 'player:jump'
     });
     this.anims.create({
       frameRate: 8,
-      frames: this.anims.generateFrameNumbers('hero', { frames: [1, 2] }),
-      key: 'hero:run',
+      frames: this.anims.generateFrameNumbers('player', { frames: [1, 2] }),
+      key: 'player:run',
       repeat: -1
     });
     this.anims.create({
-      frames: this.anims.generateFrameNumbers('hero', { frames: [0] }),
-      key: 'hero:stop'
+      frames: this.anims.generateFrameNumbers('player', { frames: [0] }),
+      key: 'player:stop'
     });
 
     // fonts
@@ -125,7 +125,7 @@ class Load extends Phaser.Scene {
       frameHeight: 66,
       frameWidth: 42
     });
-    this.load.spritesheet('hero', require('../../images/hero.png'), {
+    this.load.spritesheet('player', require('../../images/hero.png'), {
       frameHeight: 42,
       frameWidth: 36
     });

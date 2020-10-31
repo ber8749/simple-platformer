@@ -1,16 +1,14 @@
 // dependencies
 import Phaser from 'phaser';
-
-import Hero from '../sprites/hero.js';
+// sprites
+import Player from '../sprites/player.js';
 import Spider from '../sprites/spider.js';
 
 class Play extends Phaser.Scene {
   static LEVEL_COUNT = 2;
 
   constructor() {
-    super('Play');
-
-    console.log('Play', this);
+    super({ key: 'Play' });
   }
 
   create() {
@@ -60,52 +58,52 @@ class Play extends Phaser.Scene {
     enemyWalls: enemies => {
       this.physics.collide(enemies, this.enemyWalls);
     },
-    heroCoin: (_hero, coin) => {
+    playerCoin: (_player, coin) => {
       this.sound.play('sfx:coin');
 
       coin.destroy();
 
       this.coinCount++;
     },
-    heroDoor: (hero, door) => {
+    playerDoor: (player, door) => {
       // "open" door frame
       door.setFrame(1);
 
       this.sound.play('sfx:door');
 
-      hero.freeze();
+      player.freeze();
 
       // play 'enter door' animation and change to the next level when it ends
       this.tweens.add({
         alpha: 0,
         duration: 500,
         onComplete: () => this._changeLevel(this.level + 1),
-        targets: hero,
+        targets: player,
         x: door.x
       });
     },
-    heroEnemy: (hero, enemy) => {
+    playerEnemy: (player, enemy) => {
       this.sound.play('sfx:stomp');
 
-      if (hero.body.velocity.y > 0) {
-        // kill enemies when hero is falling
-        hero.bounce();
+      if (player.body.velocity.y > 0) {
+        // kill enemies when player is falling
+        player.bounce();
         enemy.die();
       } else {
-        hero.die();
+        player.die();
         // game over -> restart the game
-        hero.on(Phaser.Core.Events.DESTROY, () => this._changeLevel(this.level));
+        player.on(Phaser.Core.Events.DESTROY, () => this._changeLevel(this.level));
       }
     },
-    heroKey: (_hero, key) => {
+    playerKey: (_player, key) => {
       this.sound.play('sfx:key');
 
       key.destroy();
 
       this.hasKey = true;
     },
-    heroPlatform: () => {
-      this.physics.collide(this.hero, this.platforms);
+    playerPlatform: () => {
+      this.physics.collide(this.player, this.platforms);
     }
   };
 
@@ -146,42 +144,42 @@ class Play extends Phaser.Scene {
   };
 
   _handleCollisions = () => {
-    // when hero stands on platforms
-    this._collisionHandlers.heroPlatform();
+    // when player stands on platforms
+    this._collisionHandlers.playerPlatform();
 
-    // hero collects with coins
+    // player collects with coins
     this.physics.overlap(
-      this.hero,
+      this.player,
       this.coins,
-      this._collisionHandlers.heroCoin,
+      this._collisionHandlers.playerCoin,
       null,
       this
     );
 
-    // hero collides with spider
+    // player collides with spider
     this.physics.overlap(
-      this.hero,
+      this.player,
       this.spiders,
-      this._collisionHandlers.heroEnemy,
+      this._collisionHandlers.playerEnemy,
       null,
       this
     );
 
-    // hero collides with key
+    // player collides with key
     this.physics.overlap(
-      this.hero,
+      this.player,
       this.key,
-      this._collisionHandlers.heroKey,
+      this._collisionHandlers.playerKey,
       null,
       this
     );
 
     this.physics.overlap(
-      this.hero,
+      this.player,
       this.door,
-      this._collisionHandlers.heroDoor,
+      this._collisionHandlers.playerDoor,
       // ignore if there is no key or the player is on air
-      (hero, _door) => this.hasKey && hero.body.touching.down,
+      (player, _door) => this.hasKey && player.body.touching.down,
       this
     );
 
@@ -192,24 +190,24 @@ class Play extends Phaser.Scene {
 
   _handleInput = () => {
     if (this.keys.left.isDown) {
-      // move hero left
-      this.hero.move(-1);
+      // move player left
+      this.player.move(-1);
     } else if (this.keys.right.isDown) {
-      // move hero right
-      this.hero.move(1);
+      // move player right
+      this.player.move(1);
     } else {
       // stop
-      this.hero.move(0);
+      this.player.move(0);
     }
 
     if (this.keys.up.isDown && this.keys.up.getDuration() < 200) {
-      const didJump = this.hero.jump();
+      const didJump = this.player.jump();
 
       if (didJump) {
         this.sound.play('sfx:jump');
       }
     } else {
-      this.hero.stopJump();
+      this.player.stopJump();
     }
   };
 
@@ -235,13 +233,13 @@ class Play extends Phaser.Scene {
     this._spawnDoor(door.x, door.y);
     this._spawnKey(key.x, key.y);
 
-    // spawn hero and enemies
-    this._spawnCharacters({ hero, spiders });
+    // spawn player and enemies
+    this._spawnCharacters({ player: hero, spiders });
   };
 
-  _spawnCharacters({ hero, spiders }) {
-    // spawn hero
-    this.hero = new Hero(this, hero.x, hero.y, 'hero');
+  _spawnCharacters({ player, spiders }) {
+    // spawn player
+    this.player = new Player(this, player.x, player.y, 'player');
 
     // spawn spiders
     spiders.forEach(({ x, y }) => {
