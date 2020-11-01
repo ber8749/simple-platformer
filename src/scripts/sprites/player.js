@@ -2,9 +2,10 @@
 import Phaser from 'phaser';
 
 class Player extends Phaser.GameObjects.Sprite {
-  constructor(scene, x, y, texture, frame) {
+  constructor({ frame, id, scene, texture = 'player', x, y }) {
     super(scene, x, y, texture, frame);
     // define player properties
+    this.id = id;
     this.isAlive = true;
     this.setOrigin(0.5);
 
@@ -27,6 +28,8 @@ class Player extends Phaser.GameObjects.Sprite {
   die = () => {
     this.isAlive = false;
     this.body.enable = false;
+
+    this.scene.sound.play('sfx:stomp');
 
     this.anims.play('player:die');
 
