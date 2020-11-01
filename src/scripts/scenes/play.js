@@ -1,4 +1,5 @@
 // dependencies
+import io from 'socket.io-client';
 import Phaser from 'phaser';
 // sprites
 import Player from '../sprites/player.js';
@@ -23,6 +24,39 @@ class Play extends Phaser.Scene {
 
     // fade in
     this.cameras.main.fadeIn(500);
+
+    this.socket = io('http://localhost:3000');
+
+    this.socket.on('player', player => {
+      console.log('player', player);
+      // create current player
+      this.player = new Player({ ...player, scene: this });
+
+      this.players.add(this.player);
+    });
+
+    this.socket.on('players', players => {
+      console.log('players', players);
+      // create players
+      Object.values(players).forEach(player => {
+        this.players.add(new Player({ ...player, scene: this }));
+      });
+    });
+
+    this.socket.on('player-connected', player => {
+      console.log('player-cennected', player);
+      // create player
+      this.players.add(new Player({ ...player, scene: this }));
+    });
+
+    this.socket.on('player-disconnected', ({ id })=> {
+      console.log('player-disconnected', id);
+      console.log('players', this.players);
+      // remove player
+      const player = this.players.getChildren().find(p => p.id === id);
+
+      player.die();
+    });
   }
 
   init(data) {
@@ -83,8 +117,6 @@ class Play extends Phaser.Scene {
       });
     },
     playerEnemy: (player, enemy) => {
-      this.sound.play('sfx:stomp');
-
       if (player.body.velocity.y > 0) {
         // kill enemies when player is falling
         player.bounce();
@@ -103,7 +135,7 @@ class Play extends Phaser.Scene {
       this.hasKey = true;
     },
     playerPlatform: () => {
-      this.physics.collide(this.player, this.platforms);
+      this.physics.collide(this.players, this.platforms);
     }
   };
 
@@ -144,12 +176,18 @@ class Play extends Phaser.Scene {
   };
 
   _handleCollisions = () => {
+    // spiders collide with platforms and invisible walls
+    this._collisionHandlers.enemyPlatform(this.spiders);
+    this._collisionHandlers.enemyWalls(this.spiders);
+
+    if (!this.player) return;
+
     // when player stands on platforms
     this._collisionHandlers.playerPlatform();
 
     // player collects with coins
     this.physics.overlap(
-      this.player,
+      this.players,
       this.coins,
       this._collisionHandlers.playerCoin,
       null,
@@ -158,7 +196,7 @@ class Play extends Phaser.Scene {
 
     // player collides with spider
     this.physics.overlap(
-      this.player,
+      this.players,
       this.spiders,
       this._collisionHandlers.playerEnemy,
       null,
@@ -167,7 +205,7 @@ class Play extends Phaser.Scene {
 
     // player collides with key
     this.physics.overlap(
-      this.player,
+      this.players,
       this.key,
       this._collisionHandlers.playerKey,
       null,
@@ -175,20 +213,18 @@ class Play extends Phaser.Scene {
     );
 
     this.physics.overlap(
-      this.player,
+      this.players,
       this.door,
       this._collisionHandlers.playerDoor,
       // ignore if there is no key or the player is on air
       (player, _door) => this.hasKey && player.body.touching.down,
       this
     );
-
-    // spiders collide with platforms and invisible walls
-    this._collisionHandlers.enemyPlatform(this.spiders);
-    this._collisionHandlers.enemyWalls(this.spiders);
   };
 
   _handleInput = () => {
+    if (!this.player) return;
+
     if (this.keys.left.isDown) {
       // move player left
       this.player.move(-1);
@@ -211,12 +247,13 @@ class Play extends Phaser.Scene {
     }
   };
 
-  _loadLevel = ({ coins, decoration, door, hero, key, platforms, spiders }) => {
+  _loadLevel = ({ coins, decoration, door, key, platforms, spiders }) => {
     // create all the groups/layers that we need
     this.decorations = this.add.group();
     this.coins = this.add.group();
     this.enemyWalls = this.add.group();
     this.platforms = this.add.group();
+    this.players = this.add.group();
     this.spiders = this.add.group();
 
     // spawn decorations
@@ -234,18 +271,13 @@ class Play extends Phaser.Scene {
     this._spawnKey(key.x, key.y);
 
     // spawn player and enemies
-    this._spawnCharacters({ player: hero, spiders });
+    this._spawnCharacters({ spiders });
   };
 
-  _spawnCharacters({ player, spiders }) {
-    // spawn player
-    this.player = new Player(this, player.x, player.y, 'player');
-
+  _spawnCharacters({ spiders }) {
     // spawn spiders
-    spiders.forEach(({ x, y }) => {
-      const spider = new Spider(this, x, y, 'spider');
-
-      this.spiders.add(spider);
+    spiders.forEach(spider => {
+      this.spiders.add(new Spider({ ...spider, scene: this }));
     });
   }
 
