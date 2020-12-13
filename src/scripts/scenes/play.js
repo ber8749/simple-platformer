@@ -16,53 +16,49 @@ class Play extends Phaser.Scene {
     // add background
     this.add.image(0, 0, 'background').setOrigin(0, 0);
 
-    // load level
-    this._loadLevel(this.cache.json.get(`level:${ this.level }`));
-
     // add HUD
     this._createHud();
 
-    // fade in
-    this.cameras.main.fadeIn(500);
+    // load level
+    this._loadLevel(this.cache.json.get(`level:${ this.level }`));
 
+    // listen for player events
     this.socket = io('http://localhost:3000');
 
-    this.socket.on('player', player => {
-      console.log('player', player);
-      // create current player
+    this.socket.on('player-connected', player => {
+      console.log('player-connected', player);
+
       this.player = new Player({ ...player, scene: this });
 
       this.players.add(this.player);
     });
 
-    this.socket.on('players', players => {
-      console.log('players', players);
+    this.socket.on('peers', players => {
+      console.log('peers', players);
       // create players
       Object.values(players).forEach(player => {
         this.players.add(new Player({ ...player, scene: this }));
       });
     });
 
-    this.socket.on('player-connected', player => {
-      console.log('player-cennected', player);
+    this.socket.on('peer-connected', player => {
+      console.log('peer-connected', player);
       // create player
       this.players.add(new Player({ ...player, scene: this }));
     });
 
-    this.socket.on('player-disconnected', ({ id })=> {
-      console.log('player-disconnected', id);
+    this.socket.on('peer-disconnected', ({ id })=> {
+      console.log('peer-disconnected', id);
       console.log('players', this.players);
       // remove player
       const player = this.players.getChildren().find(p => p.id === id);
 
-      player.die();
+      player?.die();
     });
   }
 
-  init(data) {
-    this.coinCount = 0;
-    this.hasKey = false;
-    this.level = (data.level || 0) % this.constructor.LEVEL_COUNT;
+  init() {
+    this.level = 0;
 
     // configure input
     this.keys = this.input.keyboard.addKeys({
@@ -134,15 +130,29 @@ class Play extends Phaser.Scene {
 
       this.hasKey = true;
     },
+    playerPeer: (player, peer) => {
+      if (player.body.velocity.y > 0) {
+        // kill enemies when player is falling
+        player.bounce();
+        peer.die();
+      }
+    },
     playerPlatform: () => {
       this.physics.collide(this.players, this.platforms);
     }
   };
 
   _changeLevel = level => {
+    // update level
+    this.level = (level || 0) % this.constructor.LEVEL_COUNT;
+
     // fade out and restart
     this.cameras.main.fadeOut(500);
-    this.cameras.main.on('camerafadeoutcomplete', () => this.scene.restart({ level }));
+    this.cameras.main.on('camerafadeoutcomplete', () => {
+      // this.scene.restart({ level })
+      // load new level
+      this._loadLevel(this.cache.json.get(`level:${ this.level }`));
+    });
   };
 
   _createHud = () => {
@@ -203,6 +213,15 @@ class Play extends Phaser.Scene {
       this
     );
 
+    // player collides with peer
+    this.physics.overlap(
+      this.player,
+      this.players,
+      this._collisionHandlers.playerPeer,
+      null,
+      this
+    );
+
     // player collides with key
     this.physics.overlap(
       this.players,
@@ -248,12 +267,23 @@ class Play extends Phaser.Scene {
   };
 
   _loadLevel = ({ coins, decoration, door, key, platforms, spiders }) => {
+    // define level properties
+    this.coinCount = 0;
+    this.hasKey = false;
+
+    // clear all existing groups
+    this.decorations?.clear(true, true);
+    this.coins?.clear(true, true);
+    this.enemyWalls?.clear(true, true);
+    this.platforms?.clear(true, true);
+    this.spiders?.clear(true, true);
+
     // create all the groups/layers that we need
     this.decorations = this.add.group();
     this.coins = this.add.group();
     this.enemyWalls = this.add.group();
     this.platforms = this.add.group();
-    this.players = this.add.group();
+    this.players = this.players || this.add.group();
     this.spiders = this.add.group();
 
     // spawn decorations
@@ -270,8 +300,17 @@ class Play extends Phaser.Scene {
     this._spawnDoor(door.x, door.y);
     this._spawnKey(key.x, key.y);
 
-    // spawn player and enemies
+    // spawn characters
     this._spawnCharacters({ spiders });
+
+    // fade in
+    this.cameras.main.fadeIn(500);
+
+    // prepare player
+    this.player?.revive();
+    this.player?.thaw();
+    this.player?.clearAlpha();
+    this.player?.setDepth(1);
   };
 
   _spawnCharacters({ spiders }) {
