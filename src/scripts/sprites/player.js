@@ -66,9 +66,19 @@ class Player extends Phaser.GameObjects.Sprite {
     }
   };
 
+  revive = () => {
+    this.body.enable = true;
+    this.isAlive = true;
+  }
+
   stopJump = () => {
     this.isJumping = false;
   };
+
+  thaw = () => {
+    this.body.enable = true;
+    this.isFrozen = false;
+  }
 
   update = () => {
     if (!this.body) return;
