@@ -7,8 +7,8 @@ const io = require('socket.io')(http);
 const players = {};
 
 io.on('connection', socket => {
-  // send all players to new player
-  socket.emit('players', players);
+  // send all peers to new player
+  socket.emit('peers', players);
 
   // create new player
   console.log('A player connected: ' + socket.id);
@@ -18,15 +18,15 @@ io.on('connection', socket => {
     y: 525
   };
 
-  // send new player to new player
-  socket.emit('player', players[socket.id]);
+  // send player to newly connected user
+  socket.emit('player-connected', players[socket.id]);
 
   // notify all players of connection
-  socket.broadcast.emit('player-connected', players[socket.id]);
+  socket.broadcast.emit('peer-connected', players[socket.id]);
 
   socket.on('disconnect', () => {
     // notify all players of disconnection
-    socket.broadcast.emit('player-disconnected', players[socket.id]);
+    socket.broadcast.emit('peer-disconnected', players[socket.id]);
 
     console.log('A player disconnected: ' + socket.id);
     // delete player
