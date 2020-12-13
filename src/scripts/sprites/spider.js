@@ -1,7 +1,10 @@
+// dependencies
+import Phaser from 'phaser';
+
 class Spider extends Phaser.GameObjects.Sprite {
   static SPEED = 100;
 
-  constructor(scene, x, y, texture, frame) {
+  constructor({ frame, scene, texture = 'spider', x, y }) {
     super(scene, x, y, texture, frame);
 
     // set initial position
@@ -26,6 +29,8 @@ class Spider extends Phaser.GameObjects.Sprite {
 
   die = () => {
     this.body.enable = false;
+
+    this.scene.sound.play('sfx:stomp');
 
     this.anims.play('spider:die');
 

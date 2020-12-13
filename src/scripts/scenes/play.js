@@ -1,33 +1,64 @@
-import Hero from '../sprites/hero.js';
+// dependencies
+import io from 'socket.io-client';
+import Phaser from 'phaser';
+// sprites
+import Player from '../sprites/player.js';
 import Spider from '../sprites/spider.js';
 
 class Play extends Phaser.Scene {
   static LEVEL_COUNT = 2;
 
   constructor() {
-    super('Play');
-
-    console.log('Play', this);
+    super({ key: 'Play' });
   }
 
   create() {
     // add background
     this.add.image(0, 0, 'background').setOrigin(0, 0);
 
-    // load level
-    this._loadLevel(this.cache.json.get(`level:${ this.level }`));
-
     // add HUD
     this._createHud();
 
-    // fade in
-    this.cameras.main.fadeIn(500);
+    // load level
+    this._loadLevel(this.cache.json.get(`level:${ this.level }`));
+
+    // listen for player events
+    this.socket = io('http://localhost:3000');
+
+    this.socket.on('player-connected', player => {
+      console.log('player-connected', player);
+
+      this.player = new Player({ ...player, scene: this });
+
+      this.players.add(this.player);
+    });
+
+    this.socket.on('peers', players => {
+      console.log('peers', players);
+      // create players
+      Object.values(players).forEach(player => {
+        this.players.add(new Player({ ...player, scene: this }));
+      });
+    });
+
+    this.socket.on('peer-connected', player => {
+      console.log('peer-connected', player);
+      // create player
+      this.players.add(new Player({ ...player, scene: this }));
+    });
+
+    this.socket.on('peer-disconnected', ({ id })=> {
+      console.log('peer-disconnected', id);
+      console.log('players', this.players);
+      // remove player
+      const player = this.players.getChildren().find(p => p.id === id);
+
+      player?.die();
+    });
   }
 
-  init(data) {
-    this.coinCount = 0;
-    this.hasKey = false;
-    this.level = (data.level || 0) % this.constructor.LEVEL_COUNT;
+  init() {
+    this.level = 0;
 
     // configure input
     this.keys = this.input.keyboard.addKeys({
@@ -57,59 +88,71 @@ class Play extends Phaser.Scene {
     enemyWalls: enemies => {
       this.physics.collide(enemies, this.enemyWalls);
     },
-    heroCoin: (_hero, coin) => {
+    playerCoin: (_player, coin) => {
       this.sound.play('sfx:coin');
 
       coin.destroy();
 
       this.coinCount++;
     },
-    heroDoor: (hero, door) => {
+    playerDoor: (player, door) => {
       // "open" door frame
       door.setFrame(1);
 
       this.sound.play('sfx:door');
 
-      hero.freeze();
+      player.freeze();
 
       // play 'enter door' animation and change to the next level when it ends
       this.tweens.add({
         alpha: 0,
         duration: 500,
         onComplete: () => this._changeLevel(this.level + 1),
-        targets: hero,
+        targets: player,
         x: door.x
       });
     },
-    heroEnemy: (hero, enemy) => {
-      this.sound.play('sfx:stomp');
-
-      if (hero.body.velocity.y > 0) {
-        // kill enemies when hero is falling
-        hero.bounce();
+    playerEnemy: (player, enemy) => {
+      if (player.body.velocity.y > 0) {
+        // kill enemies when player is falling
+        player.bounce();
         enemy.die();
       } else {
-        hero.die();
+        player.die();
         // game over -> restart the game
-        hero.on(Phaser.Core.Events.DESTROY, () => this._changeLevel(this.level));
+        player.on(Phaser.Core.Events.DESTROY, () => this._changeLevel(this.level));
       }
     },
-    heroKey: (_hero, key) => {
+    playerKey: (_player, key) => {
       this.sound.play('sfx:key');
 
       key.destroy();
 
       this.hasKey = true;
     },
-    heroPlatform: () => {
-      this.physics.collide(this.hero, this.platforms);
+    playerPeer: (player, peer) => {
+      if (player.body.velocity.y > 0) {
+        // kill enemies when player is falling
+        player.bounce();
+        peer.die();
+      }
+    },
+    playerPlatform: () => {
+      this.physics.collide(this.players, this.platforms);
     }
   };
 
   _changeLevel = level => {
+    // update level
+    this.level = (level || 0) % this.constructor.LEVEL_COUNT;
+
     // fade out and restart
     this.cameras.main.fadeOut(500);
-    this.cameras.main.on('camerafadeoutcomplete', () => this.scene.restart({ level }));
+    this.cameras.main.on('camerafadeoutcomplete', () => {
+      // this.scene.restart({ level })
+      // load new level
+      this._loadLevel(this.cache.json.get(`level:${ this.level }`));
+    });
   };
 
   _createHud = () => {
@@ -143,79 +186,104 @@ class Play extends Phaser.Scene {
   };
 
   _handleCollisions = () => {
-    // when hero stands on platforms
-    this._collisionHandlers.heroPlatform();
-
-    // hero collects with coins
-    this.physics.overlap(
-      this.hero,
-      this.coins,
-      this._collisionHandlers.heroCoin,
-      null,
-      this
-    );
-
-    // hero collides with spider
-    this.physics.overlap(
-      this.hero,
-      this.spiders,
-      this._collisionHandlers.heroEnemy,
-      null,
-      this
-    );
-
-    // hero collides with key
-    this.physics.overlap(
-      this.hero,
-      this.key,
-      this._collisionHandlers.heroKey,
-      null,
-      this
-    );
-
-    this.physics.overlap(
-      this.hero,
-      this.door,
-      this._collisionHandlers.heroDoor,
-      // ignore if there is no key or the player is on air
-      (hero, _door) => this.hasKey && hero.body.touching.down,
-      this
-    );
-
     // spiders collide with platforms and invisible walls
     this._collisionHandlers.enemyPlatform(this.spiders);
     this._collisionHandlers.enemyWalls(this.spiders);
+
+    if (!this.player) return;
+
+    // when player stands on platforms
+    this._collisionHandlers.playerPlatform();
+
+    // player collects with coins
+    this.physics.overlap(
+      this.players,
+      this.coins,
+      this._collisionHandlers.playerCoin,
+      null,
+      this
+    );
+
+    // player collides with spider
+    this.physics.overlap(
+      this.players,
+      this.spiders,
+      this._collisionHandlers.playerEnemy,
+      null,
+      this
+    );
+
+    // player collides with peer
+    this.physics.overlap(
+      this.player,
+      this.players,
+      this._collisionHandlers.playerPeer,
+      null,
+      this
+    );
+
+    // player collides with key
+    this.physics.overlap(
+      this.players,
+      this.key,
+      this._collisionHandlers.playerKey,
+      null,
+      this
+    );
+
+    this.physics.overlap(
+      this.players,
+      this.door,
+      this._collisionHandlers.playerDoor,
+      // ignore if there is no key or the player is on air
+      (player, _door) => this.hasKey && player.body.touching.down,
+      this
+    );
   };
 
   _handleInput = () => {
+    if (!this.player) return;
+
     if (this.keys.left.isDown) {
-      // move hero left
-      this.hero.move(-1);
+      // move player left
+      this.player.move(-1);
     } else if (this.keys.right.isDown) {
-      // move hero right
-      this.hero.move(1);
+      // move player right
+      this.player.move(1);
     } else {
       // stop
-      this.hero.move(0);
+      this.player.move(0);
     }
 
     if (this.keys.up.isDown && this.keys.up.getDuration() < 200) {
-      const didJump = this.hero.jump();
+      const didJump = this.player.jump();
 
       if (didJump) {
         this.sound.play('sfx:jump');
       }
     } else {
-      this.hero.stopJump();
+      this.player.stopJump();
     }
   };
 
-  _loadLevel = ({ coins, decoration, door, hero, key, platforms, spiders }) => {
+  _loadLevel = ({ coins, decoration, door, key, platforms, spiders }) => {
+    // define level properties
+    this.coinCount = 0;
+    this.hasKey = false;
+
+    // clear all existing groups
+    this.decorations?.clear(true, true);
+    this.coins?.clear(true, true);
+    this.enemyWalls?.clear(true, true);
+    this.platforms?.clear(true, true);
+    this.spiders?.clear(true, true);
+
     // create all the groups/layers that we need
     this.decorations = this.add.group();
     this.coins = this.add.group();
     this.enemyWalls = this.add.group();
     this.platforms = this.add.group();
+    this.players = this.players || this.add.group();
     this.spiders = this.add.group();
 
     // spawn decorations
@@ -232,19 +300,23 @@ class Play extends Phaser.Scene {
     this._spawnDoor(door.x, door.y);
     this._spawnKey(key.x, key.y);
 
-    // spawn hero and enemies
-    this._spawnCharacters({ hero, spiders });
+    // spawn characters
+    this._spawnCharacters({ spiders });
+
+    // fade in
+    this.cameras.main.fadeIn(500);
+
+    // prepare player
+    this.player?.revive();
+    this.player?.thaw();
+    this.player?.clearAlpha();
+    this.player?.setDepth(1);
   };
 
-  _spawnCharacters({ hero, spiders }) {
-    // spawn hero
-    this.hero = new Hero(this, hero.x, hero.y, 'hero');
-
+  _spawnCharacters({ spiders }) {
     // spawn spiders
-    spiders.forEach(({ x, y }) => {
-      const spider = new Spider(this, x, y, 'spider');
-
-      this.spiders.add(spider);
+    spiders.forEach(spider => {
+      this.spiders.add(new Spider({ ...spider, scene: this }));
     });
   }
 

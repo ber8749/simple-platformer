@@ -1,23 +1,24 @@
-class Hero extends Phaser.GameObjects.Sprite {
-  constructor(scene, x, y, texture, frame) {
+// dependencies
+import Phaser from 'phaser';
+
+class Player extends Phaser.GameObjects.Sprite {
+  constructor({ frame, id, scene, texture = 'player', x, y }) {
     super(scene, x, y, texture, frame);
+    // define player properties
+    this.id = id;
+    this.isAlive = true;
+    this.setOrigin(0.5);
 
     // add to scene
     this.scene.add.existing(this);
-
-    // set initial position
-    this.setOrigin(0.5);
 
     // add physics
     this.scene.physics.add.existing(this);
     this.body.collideWorldBounds = true;
 
-    // workaround for update bug: https://github.com/photonstorm/phaser/issues/3378
+    // circumvent update bug:
+    // https://github.com/photonstorm/phaser/issues/3378
     this.scene.events.on('postupdate', this.update);
-
-    this.isAlive = true;
-
-    console.log('Hero:', this);
   }
 
   bounce = () => {
@@ -28,9 +29,11 @@ class Hero extends Phaser.GameObjects.Sprite {
     this.isAlive = false;
     this.body.enable = false;
 
-    this.anims.play('hero:die');
+    this.scene.sound.play('sfx:stomp');
 
-    this.on('animationcomplete-hero:die', () => this.destroy());
+    this.anims.play('player:die');
+
+    this.on('animationcomplete-player:die', () => this.destroy());
   }
 
   freeze = () => {
@@ -40,7 +43,7 @@ class Hero extends Phaser.GameObjects.Sprite {
 
   jump = () => {
     if (!this.body) return;
-    
+
     const canJump = this.body.touching.down && this.isAlive && !this.isFrozen;;
 
     if (canJump || this.isJumping) {
@@ -63,9 +66,19 @@ class Hero extends Phaser.GameObjects.Sprite {
     }
   };
 
+  revive = () => {
+    this.body.enable = true;
+    this.isAlive = true;
+  }
+
   stopJump = () => {
     this.isJumping = false;
   };
+
+  thaw = () => {
+    this.body.enable = true;
+    this.isFrozen = false;
+  }
 
   update = () => {
     if (!this.body) return;
@@ -96,8 +109,8 @@ class Hero extends Phaser.GameObjects.Sprite {
       name = 'run';
     }
 
-    return `hero:${ name }`;
+    return `player:${ name }`;
   };
 }
 
-export default Hero;
+export default Player;
