@@ -28,7 +28,11 @@ class Play extends Phaser.Scene {
     this.socket.on('player-connected', player => {
       console.log('player-connected', player);
 
-      this.player = new Player({ ...player, scene: this });
+      this.player = new Player({
+        ...player,
+        scene: this,
+        socket: this.socket
+      });
 
       this.players.add(this.player);
     });
@@ -37,14 +41,28 @@ class Play extends Phaser.Scene {
       console.log('peers', players);
       // create players
       Object.values(players).forEach(player => {
-        this.players.add(new Player({ ...player, scene: this }));
+        this.players.add(
+          new Player({
+            ...player,
+            isPeer: true,
+            scene: this,
+            socket: this.socket
+          })
+        );
       });
     });
 
     this.socket.on('peer-connected', player => {
       console.log('peer-connected', player);
       // create player
-      this.players.add(new Player({ ...player, scene: this }));
+      this.players.add(
+        new Player({
+          ...player,
+          isPeer: true,
+          scene: this,
+          socket: this.socket
+        })
+      );
     });
 
     this.socket.on('peer-disconnected', ({ id })=> {
@@ -54,6 +72,22 @@ class Play extends Phaser.Scene {
       const player = this.players.getChildren().find(p => p.id === id);
 
       player?.die();
+    });
+
+    this.socket.on('player-updated', ({ id, move, jump }) => {
+      if (this.player.id === id) {
+        return;
+      }
+
+      const player = this.players.getChildren().find(p => p.id === id);
+      console.log('player-updated', player.id, move, jump);
+
+      if (move != undefined) {
+        player?.move(move);
+      }
+      if (jump) {
+        player?.jump();
+      }
     });
   }
 

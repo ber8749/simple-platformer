@@ -32,6 +32,11 @@ io.on('connection', socket => {
     // delete player
     delete players[socket.id];
   });
+
+  // player updated
+  socket.on('player-updated', player => {
+    socket.broadcast.emit('player-updated', player);
+  });
 });
 
 http.listen(3000, function () {
