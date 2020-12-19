@@ -16,11 +16,15 @@ A simple platformer game based on [Mozilla's HTML5 Games Workshop Platformer](ht
    ```
 
 ## Playing
-1. Start the express server
+1. Switch to required Node version:
    ```
-   $ node ./src/server.js
+   $ nvm use
    ```
-1. In a seperate terminal window, start the webpack server
+1. Start the webpack server:
    ```
    $ npm start
+   ```
+1. In a seperate terminal window, start the express server:
+   ```
+   $ node ./src/server.js
    ```
