@@ -1,7 +1,7 @@
 {
-  "name": "platformer",
-  "version": "1.0.0",
-  "description": "A simple platformer game based on [Mozilla's HTML5 Games Workshop Platformer](https://mozdevs.github.io/html5-games-workshop/en/guides/platformer/start-here/) using [Phaser 3](https://phaser.io/phaser3).",
+  "name": "earph-escape",
+  "version": "0.0.1",
+  "description": "A simple platforming game based on [Mozilla's HTML5 Games Workshop Platformer](https://mozdevs.github.io/html5-games-workshop/en/guides/platformer/start-here/) using [Phaser 3](https://phaser.io/phaser3).",
   "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack/production.js",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ber8749/platformer.git"
+    "url": "git+https://github.com/ber8749/earph-escape.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ber8749/platformer/issues"
+    "url": "https://github.com/ber8749/earph-escape/issues"
   },
-  "homepage": "https://github.com/ber8749/platformer#readme",
+  "homepage": "https://github.com/ber8749/earph-escape#readme",
   "devDependencies": {
     "@babel/core": "^7.12.3",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
