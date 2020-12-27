@@ -38,6 +38,7 @@
     "html-webpack-plugin": "^4.5.0",
     "lodash": "^4.17.20",
     "mini-css-extract-plugin": "^1.2.0",
+    "node-sass": "^5.0.0",
     "optimize-css-assets-webpack-plugin": "^5.0.4",
     "phaser": "^3.24.1",
     "sass-loader": "^10.0.4",
