@@ -10,7 +10,6 @@ const { merge } = require('webpack-merge');
 module.exports = merge(common, {
   mode: 'production',
   devtool: false,
-  entry: paths.build,
   output: {
     path: paths.build,
     publicPath: '/',
