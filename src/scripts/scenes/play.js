@@ -23,7 +23,7 @@ class Play extends Phaser.Scene {
     this._loadLevel(this.cache.json.get(`level:${ this.level }`));
 
     // listen for player events
-    this.socket = io('http://localhost:3000');
+    this.socket = io(window.location.host);
 
     this.socket.on('player-connected', player => {
       console.log('player-connected', player);
