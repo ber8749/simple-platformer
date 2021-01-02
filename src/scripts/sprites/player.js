@@ -111,6 +111,8 @@ class Player extends Phaser.GameObjects.Sprite {
   };
 
   revive = () => {
+    if (!this.body) return;
+
     this.body.enable = true;
     this.isAlive = true;
   }
@@ -120,6 +122,8 @@ class Player extends Phaser.GameObjects.Sprite {
   };
 
   thaw = () => {
+    if (!this.body) return;
+    
     this.body.enable = true;
     this.isFrozen = false;
   }
