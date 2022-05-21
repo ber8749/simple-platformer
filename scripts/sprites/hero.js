@@ -1,50 +1,23 @@
-// dependencies
-import { debounce } from 'lodash';
-import Phaser from 'phaser';
-
-class Player extends Phaser.GameObjects.Sprite {
-  constructor({ frame, id, isPeer, scene, socket, texture = 'player', x, y }) {
+class Hero extends Phaser.GameObjects.Sprite {
+  constructor(scene, x, y, texture, frame) {
     super(scene, x, y, texture, frame);
-
-    // define player properties
-    this.id = id;
-    this.isAlive = true;
-    this.isMoving = false;
-    this.isPeer = !!isPeer;
-    this.setOrigin(0.5);
-    this.socket = socket;
 
     // add to scene
     this.scene.add.existing(this);
+
+    // set initial position
+    this.setOrigin(0.5);
 
     // add physics
     this.scene.physics.add.existing(this);
     this.body.collideWorldBounds = true;
 
-    // circumvent update bug:
-    // https://github.com/photonstorm/phaser/issues/3378
+    // workaround for update bug: https://github.com/photonstorm/phaser/issues/3378
     this.scene.events.on('postupdate', this.update);
-  }
 
-  eventEmitters = {
-    jump: debounce(
-      () => {
-        this.log('jump event emitted');
-        this.socket.emit('player-updated', {
-          id: this.id,
-          jump: true
-        })
-      }
-    ),
-    move: debounce(
-      direction => {
-        this.log('move event emitted', direction);
-        this.socket.emit('player-updated', {
-          id: this.id,
-          move: direction
-        })
-      }
-    )
+    this.isAlive = true;
+
+    console.log('Hero:', this);
   }
 
   bounce = () => {
@@ -55,11 +28,9 @@ class Player extends Phaser.GameObjects.Sprite {
     this.isAlive = false;
     this.body.enable = false;
 
-    this.scene.sound.play('sfx:stomp');
+    this.anims.play('hero:die');
 
-    this.anims.play('player:die');
-
-    this.on('animationcomplete-player:die', () => this.destroy());
+    this.on('animationcomplete-hero:die', () => this.destroy());
   }
 
   freeze = () => {
@@ -69,7 +40,7 @@ class Player extends Phaser.GameObjects.Sprite {
 
   jump = () => {
     if (!this.body) return;
-
+    
     const canJump = this.body.touching.down && this.isAlive && !this.isFrozen;;
 
     if (canJump || this.isJumping) {
@@ -77,20 +48,8 @@ class Player extends Phaser.GameObjects.Sprite {
       this.isJumping = true;
     }
 
-    if (!this.isPeer) {
-      this.eventEmitters.jump();
-    }
-
     return canJump;
   };
-
-  log(...args) {
-    console.log(
-      this.isPeer ? 'Peer' : 'Player',
-      this.id,
-      ...args
-    );
-  }
 
   move = direction => {
     if (!this.body || this.isFrozen) return;
@@ -102,31 +61,11 @@ class Player extends Phaser.GameObjects.Sprite {
     } else if (this.body.velocity.x > 0) {
       this.setFlipX(false);
     }
-
-    if (!this.isPeer && this.isMoving) {
-      this.eventEmitters.move(direction);
-    }
-
-    this.isMoving = direction !== 0;
   };
-
-  revive = () => {
-    if (!this.body) return;
-
-    this.body.enable = true;
-    this.isAlive = true;
-  }
 
   stopJump = () => {
     this.isJumping = false;
   };
-
-  thaw = () => {
-    if (!this.body) return;
-    
-    this.body.enable = true;
-    this.isFrozen = false;
-  }
 
   update = () => {
     if (!this.body) return;
@@ -157,8 +96,8 @@ class Player extends Phaser.GameObjects.Sprite {
       name = 'run';
     }
 
-    return `player:${ name }`;
+    return `hero:${ name }`;
   };
 }
 
-export default Player;
+export default Hero;

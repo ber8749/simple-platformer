@@ -1,6 +1,3 @@
-// dependencies
-import Phaser from 'phaser';
-// scenes
 import Load from './scenes/load.js';
 import Play from './scenes/play.js';
 
